@@ -1,12 +1,13 @@
 {
-  "name": "title-cards",
+  "name": "rohan-story",
   "private": true,
   "type": "module",
   "scripts": {
-    "font": "mkdir -p fonts && curl -L -o fonts/SpaceGrotesk-700.woff2 https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk@latest/latin-700-normal.woff2",
+    "font": "mkdir -p fonts && curl -L -o fonts/NotoSansDevanagari-700-deva.woff2 https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-devanagari@latest/devanagari-700-normal.woff2 && curl -L -o fonts/NotoSansDevanagari-700-latin.woff2 https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-devanagari@latest/latin-700-normal.woff2",
+    "selftest": "node selftest.mjs",
     "stills": "node render.mjs --stills",
     "render": "node render.mjs",
-    "encode": "mkdir -p out && ffmpeg -y -framerate 30 -i frames/f%05d.png -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -movflags +faststart out/title_cards.mp4"
+    "encode": "mkdir -p out && ffmpeg -y -framerate 30 -i frames/f%05d.png -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -movflags +faststart out/rohan_story.mp4"
   },
   "dependencies": {
     "puppeteer": "^23.0.0"
