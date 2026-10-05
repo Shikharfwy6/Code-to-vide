@@ -8,7 +8,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const stillsOnly = process.argv.includes('--stills');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.woff2': 'font/woff2' };
 
-// Static server on a free port so the font loads over http://
+// Static server on a free port so the fonts load over http://
 const server = http.createServer((req, res) => {
   const rel = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   const file = path.join(root, rel === '/' ? 'index.html' : rel);
@@ -18,7 +18,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
   fs.createReadStream(file).pipe(res);
 });
-await new Promise(r => server.listen(0, '127.0.0.1', r));
+await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const { port } = server.address();
 
 const browser = await puppeteer.launch({
@@ -27,8 +27,9 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
-page.on('console', m => console.log('[page]', m.text()));
-page.on('pageerror', e => { console.error('[pageerror]', e.message); process.exitCode = 1; });
+page.on('console', (m) => console.log('[page]', m.text()));
+page.on('pageerror', (e) => { console.error('[pageerror]', e.message); process.exitCode = 1; });
+page.on('requestfailed', (r) => console.error('[requestfailed]', r.url()));
 await page.goto(`http://127.0.0.1:${port}/index.html`);
 await page.waitForFunction('window.READY === true', { timeout: 30000 });
 
@@ -43,12 +44,12 @@ const grab = async (t) => {
 if (stillsOnly) {
   fs.rmSync('stills', { recursive: true, force: true });
   fs.mkdirSync('stills', { recursive: true });
-  const cards = await page.evaluate(() => window.CARDS);
-  for (const c of cards) {
-    const t = c.start + 0.5 + c.hold / 2; // middle of the hold
-    fs.writeFileSync(`stills/card${c.i + 1}.png`, await grab(t));
+  const stills = await page.evaluate(() => window.STILLS);
+  let n = 1;
+  for (const s of stills) {
+    fs.writeFileSync(`stills/${String(n++).padStart(2, '0')}_${s.name}.png`, await grab(s.t));
   }
-  console.log(`wrote ${cards.length} stills to stills/`);
+  console.log(`wrote ${stills.length} stills to stills/`);
 } else {
   const duration = await page.evaluate(() => window.DURATION);
   const fps = await page.evaluate(() => window.FPS);
@@ -57,7 +58,7 @@ if (stillsOnly) {
   fs.mkdirSync('frames', { recursive: true });
   for (let i = 0; i < n; i++) {
     fs.writeFileSync(`frames/f${String(i).padStart(5, '0')}.png`, await grab(i / fps));
-    if (i % 60 === 0) console.log(`frame ${i}/${n}`);
+    if (i % 100 === 0) console.log(`frame ${i}/${n}`);
   }
   console.log(`wrote ${n} frames (${duration.toFixed(2)} s)`);
 }
